@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  student-analyzer:
+    # If you have the source + Dockerfile locally, `docker compose up --build`
+    # will build from scratch using the block below.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # If you (or another user) just want to run the published image without
+    # the source, comment out the "build:" block above and uncomment the
+    # line below instead, pointing at your Docker Hub repo:
+    # image: YOUR_DOCKERHUB_USERNAME/multi-agent-student-analyzer:latest
+    image: multi-agent-student-analyzer:latest
+    container_name: multi-agent-student-analyzer
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      # Optional: pre-fill secrets via env if you adapt app.py to read them;
+      # by default this app takes HF token / Gmail creds via the sidebar UI.
+      # - HF_TOKEN=hf_xxx
+      # - SENDER_EMAIL=you@gmail.com
+      # - SENDER_APP_PASSWORD=xxxx xxxx xxxx xxxx
+    volumes:
+      # Optional: mount a local folder if you want to drop Excel files in
+      # and reference them, though the app uses the in-browser uploader.
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
